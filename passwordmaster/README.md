@@ -1,5 +1,4 @@
-# PasswordGuard
-
+# PasswordMaster
 Checador de senhas para quem não tem conhecimento de segurança — verifica se uma senha já vazou publicamente e avalia sua força real, com explicações em linguagem simples.
 
 ## Como funciona
