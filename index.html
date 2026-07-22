@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Password Master</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0F1420;
+    --surface: #1A2233;
+    --surface-2: #232D42;
+    --border: #2E3A54;
+    --text: #E8EAF2;
+    --text-muted: #8B93A8;
+    --gold: #F4B740;
+    --gold-dim: #C99527;
+    --alto: #FF5A5F;
+    --medio: #FFB020;
+    --baixo: #4FD1C5;
+    --ok: #4FD1C5;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body{
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px 64px;
+  }
+
+  .wrap{
+    width: 100%;
+    max-width: 560px;
+  }
+
+  /* ---------- Header / signature ---------- */
+  .header{
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .keyhole{
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 16px;
+    position: relative;
+  }
+  .keyhole svg{ width: 100%; height: 100%; display:block; }
+  .keyhole circle, .keyhole path{
+    transition: fill 0.4s ease, stroke 0.4s ease;
+  }
+
+  h1{
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+  }
+  h1 span{ color: var(--gold); }
+
+  .subtitle{
+    color: var(--text-muted);
+    font-size: 14px;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* ---------- Input card ---------- */
+  .card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 16px;
+  }
+
+  label{
+    display: block;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .input-row{
+    display: flex;
+    align-items: center;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px 4px 4px 14px;
+  }
+  .input-row:focus-within{
+    border-color: var(--gold-dim);
+  }
+
+  #senha{
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    padding: 12px 0;
+    min-width: 0;
+  }
+  #senha::placeholder{ color: #5A6478; }
+
+  .toggle-btn{
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 8px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .toggle-btn:hover{ color: var(--text); background: var(--surface); }
+  .toggle-btn:focus-visible{ outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  /* ---------- Strength meter ---------- */
+  .meter-row{
+    display: flex;
+    gap: 5px;
+    margin-top: 14px;
+  }
+  .meter-seg{
+    height: 6px;
+    flex: 1;
+    border-radius: 3px;
+    background: var(--surface-2);
+    transition: background 0.3s ease;
+  }
+
+  .meter-label{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .meter-label .status{
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .meter-label .entropy{ color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+
+  /* ---------- Button ---------- */
+  .btn-primary{
+    width: 100%;
+    margin-top: 18px;
+    background: var(--gold);
+    color: #1A1200;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+  .btn-primary:hover{ background: #FFC966; }
+  .btn-primary:active{ transform: scale(0.99); }
+  .btn-primary:disabled{ background: var(--surface-2); color: var(--text-muted); cursor: default; }
+  .btn-primary:focus-visible{ outline: 2px solid var(--gold); outline-offset: 3px; }
+
+  .privacy-note{
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+
+  /* ---------- Results ---------- */
+  #resultados{
+    display: none;
+  }
+  #resultados.visible{ display: block; }
+
+  .summary-card{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .summary-card .status-tag{
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+  }
+  .summary-card .status-desc{
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .finding{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .finding.alto{ border-left-color: var(--alto); }
+  .finding.medio{ border-left-color: var(--medio); }
+  .finding.baixo{ border-left-color: var(--baixo); }
+  .finding.ok{ border-left-color: var(--ok); }
+
+  .finding .risk-tag{
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+  }
+  .finding.alto .risk-tag{ background: rgba(255,90,95,0.15); color: var(--alto); }
+  .finding.medio .risk-tag{ background: rgba(255,176,32,0.15); color: var(--medio); }
+  .finding.baixo .risk-tag{ background: rgba(79,209,197,0.15); color: var(--baixo); }
+  .finding.ok .risk-tag{ background: rgba(79,209,197,0.15); color: var(--ok); }
+
+  .finding .titulo{
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 14.5px;
+    margin-bottom: 6px;
+  }
+  .finding .texto{
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.55;
+    margin-bottom: 6px;
+  }
+  .finding .recomendacao{
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .finding .recomendacao b{ color: var(--gold); font-weight: 600; }
+
+  footer{
+    margin-top: 32px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  footer a{ color: var(--text-muted); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="header">
+    <div class="keyhole" id="keyholeIcon">
+      <svg viewBox="0 0 44 44" fill="none">
+        <circle cx="22" cy="22" r="20" stroke="#2E3A54" stroke-width="2" fill="none"/>
+        <circle id="khCircle" cx="22" cy="17" r="6" fill="#5A6478"/>
+        <path id="khPath" d="M19 22 L17 32 L27 32 L25 22 Z" fill="#5A6478"/>
+      </svg>
+    </div>
+    <h1>Password <span>Master</span></h1>
+    <p class="subtitle">Descubra se sua senha é forte de verdade — sem jargão técnico, sem enrolação.</p>
+  </div>
+
+  <div class="card">
+    <label for="senha">Digite sua senha</label>
+    <div class="input-row">
+      <input type="password" id="senha" placeholder="••••••••••••" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="toggle-btn" id="toggleVer" type="button" aria-label="Mostrar senha">MOSTRAR</button>
+    </div>
+
+    <div class="meter-row" id="meterRow">
+      <div class="meter-seg"></div>
+      <div class="meter-seg"></div>
+      <div class="meter-seg"></div>
+      <div class="meter-seg"></div>
+    </div>
+    <div class="meter-label">
+      <span class="status" id="statusLabel">Digite algo pra começar</span>
+      <span class="entropy" id="entropyLabel"></span>
+    </div>
+
+    <button class="btn-primary" id="btnVerificar" disabled>Verificar vazamento</button>
+    <p class="privacy-note">
+      Sua senha nunca é enviada inteira pra lugar nenhum. Só um pedacinho do hash dela
+      (5 caracteres) é consultado na API pública Have I Been Pwned, técnica chamada k-anonymity.
+    </p>
+  </div>
+
+  <div id="resultados"></div>
+
+  <footer>
+    Feito em Python + JavaScript · <a href="https://github.com/" target="_blank" rel="noopener">código no GitHub</a>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Lista local de senhas comuns (fallback / checagem instantânea) ----------
+  const SENHAS_COMUNS = new Set([
+    "123456","123456789","qwerty","password","12345","12345678","111111","1234567",
+    "123123","qwerty123","1q2w3e","1234567890","000000","abc123","654321","123321",
+    "qwertyuiop","iloveyou","senha","senha123","brasil","brasil123","123mudar",
+    "mudar123","vasco","flamengo","corinthians","palmeiras","saopaulo","amor","amor123",
+    "gatinho","princesa","familia","deus","jesus","12341234","11111111","asdfgh",
+    "asdf1234","zxcvbn","zxcvbnm","qwe123","abcd1234","teste","teste123","usuario",
+    "admin","welcome","monkey","login","princess","solo","starwars","football",
+    "letmein","dragon","master","freedom","passw0rd","p@ssw0rd","password1",
+    "senha@123","admin123","welcome123","changeme","guest","root","toor"
+  ]);
+
+  const SEQUENCIAS_TECLADO = ["qwerty","asdfgh","zxcvbn","qazwsx","1qaz2wsx","123456","654321","abcdef"];
+
+  function temSequencia(senha, tamanhoMin){
+    tamanhoMin = tamanhoMin || 4;
+    const s = senha.toLowerCase();
+    for(let i = 0; i <= s.length - tamanhoMin; i++){
+      const trecho = s.slice(i, i + tamanhoMin);
+      const codigos = [...trecho].map(c => c.charCodeAt(0));
+      const isDigitos = /^[0-9]+$/.test(trecho);
+      const isLetras = /^[a-z]+$/.test(trecho);
+      if(!isDigitos && !isLetras) continue;
+      let crescente = true, decrescente = true;
+      for(let j = 0; j < codigos.length - 1; j++){
+        if(codigos[j+1] - codigos[j] !== 1) crescente = false;
+        if(codigos[j] - codigos[j+1] !== 1) decrescente = false;
+      }
+      if(crescente || decrescente) return true;
+    }
+    return false;
+  }
+
+  function temRepeticaoExcessiva(senha, limite){
+    limite = limite || 3;
+    let contagem = 1;
+    for(let i = 1; i < senha.length; i++){
+      if(senha[i] === senha[i-1]){
+        contagem++;
+        if(contagem >= limite) return true;
+      } else {
+        contagem = 1;
+      }
+    }
+    return false;
+  }
+
+  function calcularEntropia(senha){
+    let espacos = 0;
+    if(/[a-z]/.test(senha)) espacos += 26;
+    if(/[A-Z]/.test(senha)) espacos += 26;
+    if(/[0-9]/.test(senha)) espacos += 10;
+    if(/[^a-zA-Z0-9]/.test(senha)) espacos += 32;
+    if(espacos === 0) return 0;
+    return senha.length * Math.log2(espacos);
+  }
+
+  function checarForca(senha){
+    const achados = [];
+
+    if(senha.length < 8){
+      achados.push({
+        titulo: "Senha muito curta",
+        texto: `Sua senha tem ${senha.length} caracteres. Segundo o guia NIST 800-63B, o tamanho é o fator mais importante pra dificultar tentativas automatizadas de adivinhação.`,
+        recomendacao: "Use pelo menos 12 caracteres. Uma frase longa e fácil de lembrar é mais segura que uma senha curta e complexa.",
+        risco: "alto"
+      });
+    } else if(senha.length < 12){
+      achados.push({
+        titulo: "Tamanho abaixo do recomendado",
+        texto: `Sua senha tem ${senha.length} caracteres. O recomendado atualmente é 12 ou mais.`,
+        recomendacao: "Aumente para 12+ caracteres, se possível usando uma frase.",
+        risco: "medio"
+      });
+    }
+
+    const senhaLower = senha.toLowerCase();
+    if(SEQUENCIAS_TECLADO.some(seq => senhaLower.includes(seq)) || temSequencia(senha)){
+      achados.push({
+        titulo: "Contém sequência previsível",
+        texto: "Sua senha tem uma sequência de teclado ou de caracteres (tipo '1234', 'abcd', 'qwerty'). É um dos primeiros padrões que ferramentas de quebra de senha tentam.",
+        recomendacao: "Evite sequências óbvias. Prefira combinações sem padrão lógico visível.",
+        risco: "alto"
+      });
+    }
+
+    if(temRepeticaoExcessiva(senha)){
+      achados.push({
+        titulo: "Caracteres repetidos em excesso",
+        texto: "Sua senha tem o mesmo caractere repetido várias vezes seguidas, o que reduz a imprevisibilidade.",
+        recomendacao: "Evite repetir o mesmo caractere mais de duas vezes seguidas.",
+        risco: "medio"
+      });
+    }
+
+    const temMin = /[a-z]/.test(senha);
+    const temMai = /[A-Z]/.test(senha);
+    const temNum = /[0-9]/.test(senha);
+    const temSim = /[^a-zA-Z0-9]/.test(senha);
+    const variedade = [temMin, temMai, temNum, temSim].filter(Boolean).length;
+
+    if(variedade <= 1){
+      achados.push({
+        titulo: "Usa só um tipo de caractere",
+        texto: "Sua senha usa apenas um tipo de caractere. Misturar tipos aumenta bastante o espaço de possibilidades que um atacante precisa tentar.",
+        recomendacao: "Combine letras maiúsculas, minúsculas, números e símbolos.",
+        risco: "alto"
+      });
+    } else if(variedade === 2){
+      achados.push({
+        titulo: "Pouca variedade de caracteres",
+        texto: "Sua senha usa só 2 tipos de caractere diferentes.",
+        recomendacao: "Se possível, inclua mais um tipo (símbolo ou número, por exemplo).",
+        risco: "baixo"
+      });
+    }
+
+    const entropia = calcularEntropia(senha);
+    if(entropia < 40 && senha.length > 0){
+      achados.push({
+        titulo: "Baixa imprevisibilidade estatística (entropia)",
+        texto: `A entropia estimada é de ${Math.round(entropia)} bits. Especialistas consideram confortável a partir de 60 bits para uso geral.`,
+        recomendacao: "Aumente o tamanho e a variedade de caracteres para elevar a entropia.",
+        risco: "medio"
+      });
+    }
+
+    return { achados, entropia };
+  }
+
+  // ---------- SHA-1 via SubtleCrypto (checagem HIBP com k-anonymity) ----------
+  async function sha1Hex(texto){
+    const buffer = new TextEncoder().encode(texto);
+    const hashBuffer = await crypto.subtle.digest("SHA-1", buffer);
+    return [...new Uint8Array(hashBuffer)]
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("")
+      .toUpperCase();
+  }
+
+  async function checarVazamentoOnline(senha){
+    try{
+      const hash = await sha1Hex(senha);
+      const prefixo = hash.slice(0, 5);
+      const sufixo = hash.slice(5);
+
+      const resp = await fetch(`https://api.pwnedpasswords.com/range/${prefixo}`, {
+        headers: { "Add-Padding": "true" }
+      });
+      if(!resp.ok) return { ok: false };
+
+      const texto = await resp.text();
+      const linhas = texto.split("\n");
+      for(const linha of linhas){
+        const [suf, contagem] = linha.trim().split(":");
+        if(suf === sufixo){
+          return { ok: true, vazada: true, contagem: parseInt(contagem, 10) };
+        }
+      }
+      return { ok: true, vazada: false };
+    } catch(e){
+      return { ok: false };
+    }
+  }
+
+  // ---------- UI ----------
+  const inputSenha = document.getElementById("senha");
+  const toggleVer = document.getElementById("toggleVer");
+  const meterRow = document.getElementById("meterRow");
+  const statusLabel = document.getElementById("statusLabel");
+  const entropyLabel = document.getElementById("entropyLabel");
+  const btnVerificar = document.getElementById("btnVerificar");
+  const resultados = document.getElementById("resultados");
+  const khCircle = document.getElementById("khCircle");
+  const khPath = document.getElementById("khPath");
+
+  const CORES = { alto: "#FF5A5F", medio: "#FFB020", baixo: "#4FD1C5", ok: "#4FD1C5" };
+  const NOMES_RISCO = { alto: "ALTO", medio: "MÉDIO", baixo: "BAIXO", ok: "OK" };
+
+  toggleVer.addEventListener("click", () => {
+    const mostrando = inputSenha.type === "text";
+    inputSenha.type = mostrando ? "password" : "text";
+    toggleVer.textContent = mostrando ? "MOSTRAR" : "ESCONDER";
+  });
+
+  function atualizarMedidor(){
+    const senha = inputSenha.value;
+    resultados.classList.remove("visible");
+    resultados.innerHTML = "";
+
+    if(!senha){
+      statusLabel.textContent = "Digite algo pra começar";
+      statusLabel.style.color = "var(--text-muted)";
+      entropyLabel.textContent = "";
+      setSegmentos(0, "#232D42");
+      btnVerificar.disabled = true;
+      setKeyhole("#5A6478");
+      return;
+    }
+
+    const { achados, entropia } = checarForca(senha);
+    const estaNaListaComum = SENHAS_COMUNS.has(senha.toLowerCase());
+    const totalAlto = achados.filter(a => a.risco === "alto").length + (estaNaListaComum ? 1 : 0);
+
+    let nivel, cor, texto;
+    if(estaNaListaComum || totalAlto >= 2){
+      nivel = 1; cor = CORES.alto; texto = "Fraca";
+    } else if(totalAlto === 1 || achados.length >= 2){
+      nivel = 2; cor = CORES.medio; texto = "Razoável";
+    } else if(achados.length === 1){
+      nivel = 3; cor = CORES.baixo; texto = "Boa";
+    } else {
+      nivel = 4; cor = CORES.ok; texto = "Forte";
+    }
+
+    setSegmentos(nivel, cor);
+    statusLabel.textContent = texto;
+    statusLabel.style.color = cor;
+    entropyLabel.textContent = `${Math.round(entropia)} bits`;
+    setKeyhole(cor);
+    btnVerificar.disabled = false;
+  }
+
+  function setSegmentos(nivel, cor){
+    const segs = meterRow.querySelectorAll(".meter-seg");
+    segs.forEach((seg, i) => {
+      seg.style.background = i < nivel ? cor : "#232D42";
+    });
+  }
+
+  function setKeyhole(cor){
+    khCircle.setAttribute("fill", cor);
+    khPath.setAttribute("fill", cor);
+  }
+
+  let debounceTimer;
+  inputSenha.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(atualizarMedidor, 120);
+  });
+
+  btnVerificar.addEventListener("click", async () => {
+    const senha = inputSenha.value;
+    if(!senha) return;
+
+    btnVerificar.disabled = true;
+    btnVerificar.textContent = "Verificando...";
+
+    const [resultadoOnline, forca] = await Promise.all([
+      checarVazamentoOnline(senha),
+      Promise.resolve(checarForca(senha))
+    ]);
+
+    const estaNaListaComum = SENHAS_COMUNS.has(senha.toLowerCase());
+    let vazada, contagem, fonte;
+
+    if(resultadoOnline.ok){
+      vazada = resultadoOnline.vazada;
+      contagem = resultadoOnline.contagem;
+      fonte = "API Have I Been Pwned";
+    } else {
+      vazada = estaNaListaComum;
+      contagem = null;
+      fonte = "lista local (não foi possível consultar a API agora)";
+    }
+
+    renderizarResultados(vazada, contagem, fonte, forca.achados, forca.entropia);
+
+    btnVerificar.disabled = false;
+    btnVerificar.textContent = "Verificar vazamento";
+  });
+
+  function renderizarResultados(vazada, contagem, fonte, achados, entropia){
+    resultados.innerHTML = "";
+
+    const totalAltoReal = achados.filter(a => a.risco === "alto").length + (vazada ? 1 : 0);
+    let statusGeral, corGeral;
+    if(totalAltoReal > 0){
+      statusGeral = "FRACA"; corGeral = CORES.alto;
+    } else if(achados.length > 0){
+      statusGeral = "RAZOÁVEL"; corGeral = CORES.medio;
+    } else {
+      statusGeral = "FORTE"; corGeral = CORES.ok;
+    }
+
+    const summary = document.createElement("div");
+    summary.className = "summary-card";
+    summary.style.borderLeft = `4px solid ${corGeral}`;
+    summary.innerHTML = `
+      <div>
+        <div class="status-tag" style="color:${corGeral}">${statusGeral}</div>
+        <div class="status-desc">Entropia estimada: ${Math.round(entropia)} bits</div>
+      </div>
+    `;
+    resultados.appendChild(summary);
+
+    const vazamentoDiv = document.createElement("div");
+    if(vazada){
+      vazamentoDiv.className = "finding alto";
+      vazamentoDiv.innerHTML = `
+        <span class="risk-tag">ALTO</span>
+        <div class="titulo">Essa senha já apareceu em vazamentos públicos</div>
+        <div class="texto">${contagem ? `Foi vista ${contagem.toLocaleString('pt-BR')} vez(es) em bancos de dados de vazamentos conhecidos.` : `Encontrada numa lista de senhas comuns/vazadas.`} Fonte: ${fonte}.</div>
+        <div class="recomendacao"><b>Recomendação:</b> troque essa senha imediatamente, em todos os lugares onde ela é usada.</div>
+      `;
+    } else {
+      vazamentoDiv.className = "finding ok";
+      vazamentoDiv.innerHTML = `
+        <span class="risk-tag">OK</span>
+        <div class="titulo">Não encontrada em vazamentos conhecidos</div>
+        <div class="texto">Checagem feita via ${fonte}.</div>
+      `;
+    }
+    resultados.appendChild(vazamentoDiv);
+
+    if(achados.length === 0){
+      const okDiv = document.createElement("div");
+      okDiv.className = "finding ok";
+      okDiv.innerHTML = `
+        <span class="risk-tag">OK</span>
+        <div class="titulo">Nenhum problema estrutural encontrado</div>
+      `;
+      resultados.appendChild(okDiv);
+    } else {
+      achados.sort((a, b) => {
+        const ordem = { alto: 0, medio: 1, baixo: 2 };
+        return ordem[a.risco] - ordem[b.risco];
+      });
+      achados.forEach(achado => {
+        const div = document.createElement("div");
+        div.className = `finding ${achado.risco}`;
+        div.innerHTML = `
+          <span class="risk-tag">${NOMES_RISCO[achado.risco]}</span>
+          <div class="titulo">${achado.titulo}</div>
+          <div class="texto">${achado.texto}</div>
+          <div class="recomendacao"><b>Recomendação:</b> ${achado.recomendacao}</div>
+        `;
+        resultados.appendChild(div);
+      });
+    }
+
+    resultados.classList.add("visible");
+  }
+
+  atualizarMedidor();
+})();
+</script>
+</body>
+</html>
